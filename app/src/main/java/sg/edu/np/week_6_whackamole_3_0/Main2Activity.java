@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
 import android.widget.Toast;
 import java.util.ArrayList;
 
@@ -23,9 +23,15 @@ public class Main2Activity extends AppCompatActivity {
         5. There is an option to cancel. This loads the login user page.
      */
 
+    private EditText signUpUsernameEditText;
+    private EditText signUpPasswordEditText;
+    private Button confirmSignUpButton;
+    private Button cancelButton;
 
     private static final String FILENAME = "Main2Activity.java";
     private static final String TAG = "Whack-A-Mole3.0!";
+
+    private MyDBHandler dbHandler = new MyDBHandler(this, "WhackAMole.db", null, 1);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +49,64 @@ public class Main2Activity extends AppCompatActivity {
             Log.v(TAG, FILENAME + ": User already exist during new user creation!");
 
          */
+
+        Log.v(TAG, FILENAME + ": Testing");
+        //Instantiate variables
+        signUpUsernameEditText = (EditText) findViewById(R.id.usernameEditText);
+        signUpPasswordEditText = (EditText) findViewById(R.id.passwordEditText);
+        confirmSignUpButton = (Button) findViewById(R.id.loginButton);
+        cancelButton = (Button) findViewById(R.id.cancelButton);
+
+        confirmSignUpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String usernameInput = signUpUsernameEditText.getText().toString();
+                String passwordInput = signUpPasswordEditText.getText().toString();
+
+                if (dbHandler.findUser(usernameInput) != null) {
+                    //Since usernames are unique, check if user exists in db.
+                    Log.v(TAG, FILENAME + ": User already exist during new user creation!");
+                    displayMsg(signUpUsernameEditText, "A user with this username already exists!");
+                }
+
+                else {
+                    ArrayList<Integer> levels = new ArrayList<>();
+                    ArrayList<Integer> scores = new ArrayList<>();
+                    for (int i = 0; i < 10; i++) {
+                        levels.add(i + 1);
+                        scores.add(0);
+                    }
+
+                    UserData userData = new UserData(usernameInput, passwordInput, levels, scores);
+                    dbHandler.addUser(userData);
+                    Log.v(TAG, FILENAME + ": New user created successfully!");
+
+                    //return to log in page after creating account
+                    Intent returnToLogin = new Intent(Main2Activity.this, MainActivity.class);
+                    setResult(RESULT_OK, returnToLogin);
+                    startActivity(returnToLogin);
+                }
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent returnToLogin = new Intent(Main2Activity.this, MainActivity.class);
+                setResult(RESULT_CANCELED, returnToLogin);
+                finish();
+            }
+        });
     }
 
     protected void onStop() {
         super.onStop();
         finish();
+    }
+
+    public void displayMsg(EditText editText, String errorMsg) {
+        editText.setError(errorMsg);
+        Toast.makeText(this, "Invalid Username or Password!", Toast.LENGTH_SHORT).show();
+        signUpPasswordEditText.setText("");
     }
 }

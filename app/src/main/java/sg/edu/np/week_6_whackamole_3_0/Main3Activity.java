@@ -25,6 +25,15 @@ public class Main3Activity extends AppCompatActivity {
             e. Each location of the mole is randomised.
         5. There is an option return to the login page.
      */
+
+    private RecyclerView levelSelectRecyclerView;
+    private Button signOutButton;
+
+    private String username;
+    private CustomScoreAdaptor scoreAdaptor;
+
+    private MyDBHandler dbHandler = new MyDBHandler(this, "WhackAMole.db", null, 1);
+
     private static final String FILENAME = "Main3Activity.java";
     private static final String TAG = "Whack-A-Mole3.0!";
 
@@ -38,6 +47,31 @@ public class Main3Activity extends AppCompatActivity {
 
         Log.v(TAG, FILENAME + ": Show level for User: "+ userName);
          */
+
+        levelSelectRecyclerView = (RecyclerView) findViewById(R.id.levelSelectRecyclerView);
+        signOutButton = (Button) findViewById(R.id.signOutButton);
+
+        signOutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent exitToLogin = new Intent(Main3Activity.this, MainActivity.class);
+                startActivity(exitToLogin);
+            }
+        });
+
+        Intent dataReceiver = getIntent();
+        username = dataReceiver.getStringExtra("currentUsername");
+
+        Log.v(TAG, FILENAME + ": Show level for User: "+ username);
+
+        UserData userData = dbHandler.findUser(username);
+
+        scoreAdaptor = new CustomScoreAdaptor(userData);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+
+        levelSelectRecyclerView.setLayoutManager(layoutManager);
+        levelSelectRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        levelSelectRecyclerView.setAdapter(scoreAdaptor);
     }
 
     @Override
@@ -45,4 +79,5 @@ public class Main3Activity extends AppCompatActivity {
         super.onStop();
         finish();
     }
+
 }
